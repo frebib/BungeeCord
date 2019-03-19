@@ -23,6 +23,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.ServerConnection;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.event.ServerDisconnectEvent;
 import net.md_5.bungee.api.event.TabCompleteResponseEvent;
@@ -31,6 +32,7 @@ import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.ServerChatEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
@@ -47,6 +49,7 @@ import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.PacketWrapper;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import net.md_5.bungee.protocol.packet.BossBar;
+import net.md_5.bungee.protocol.packet.Chat;
 import net.md_5.bungee.protocol.packet.Commands;
 import net.md_5.bungee.protocol.packet.KeepAlive;
 import net.md_5.bungee.protocol.packet.PlayerListItem;
@@ -594,6 +597,20 @@ public class DownstreamBridge extends PacketHandler
             con.unsafe().sendPacket( commands );
             throw CancelSendSignal.INSTANCE;
         }
+    }
+
+    @Override
+    public void handle(Chat chat) throws Exception
+    {
+        ServerChatEvent chatEvent = new ServerChatEvent( con.getServer(), con, chat.getMessage(), chat.getPosition() );
+        if ( !bungee.getPluginManager().callEvent( chatEvent ).isCancelled() )
+        {
+            // Be aware that because of this, all server-sent chat messages are parsed and re-serialised
+            chat.setMessage( ComponentSerializer.toString(chatEvent.getMessage()) );
+            chat.setPosition( ( byte ) chatEvent.getPosition().ordinal() );
+            con.unsafe().sendPacket( chat );
+        }
+        throw CancelSendSignal.INSTANCE;
     }
 
     @Override
