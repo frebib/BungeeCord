@@ -118,11 +118,6 @@ public class BaseComponentSerializer
                 object.addProperty( "insertion", component.getInsertion() );
             }
 
-            if ( component.getExtra() != null )
-            {
-                object.add( "extra", context.serialize( component.getExtra() ) );
-            }
-
             //Events
             if ( component.getClickEvent() != null )
             {
@@ -137,6 +132,12 @@ public class BaseComponentSerializer
                 hoverEvent.addProperty( "action", component.getHoverEvent().getAction().toString().toLowerCase( Locale.ROOT ) );
                 hoverEvent.add( "value", context.serialize( component.getHoverEvent().getValue() ) );
                 object.add( "hoverEvent", hoverEvent );
+            }
+
+            // Minecraft 1.13.2 puts 'extra' at the end
+            if ( component.getExtra() != null )
+            {
+                object.add( "extra", context.serialize( component.getExtra() ) );
             }
         } finally
         {
