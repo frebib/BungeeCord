@@ -2,6 +2,7 @@ package net.md_5.bungee.chat;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import net.md_5.bungee.api.ChatColor;
@@ -130,7 +131,7 @@ public class BaseComponentSerializer
             {
                 JsonObject hoverEvent = new JsonObject();
                 hoverEvent.addProperty( "action", component.getHoverEvent().getAction().toString().toLowerCase( Locale.ROOT ) );
-                hoverEvent.add( "value", context.serialize( component.getHoverEvent().getValue() ) );
+                hoverEvent.add( "value", serializeSingletonArray( context, component.getHoverEvent().getValue() ) );
                 object.add( "hoverEvent", hoverEvent );
             }
 
@@ -147,5 +148,10 @@ public class BaseComponentSerializer
                 ComponentSerializer.serializedComponents.set( null );
             }
         }
+    }
+
+    protected JsonElement serializeSingletonArray(JsonSerializationContext context, BaseComponent[] array)
+    {
+        return array.length == 1 ? context.serialize( array[0] ) : context.serialize( array );
     }
 }
