@@ -202,6 +202,7 @@ public class ServerConnector extends PacketHandler
             user.getForgeClientHandler().setHandshakeComplete();
         }
 
+        ServerInfo oldServer = null;
         if ( user.getServer() == null )
         {
             // Once again, first connection
@@ -260,6 +261,9 @@ public class ServerConnector extends PacketHandler
             user.unsafe().sendPacket( new Respawn( login.getDimension(), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
             user.setDimension( login.getDimension() );
 
+            // Keep track of the old server before disconnecting
+            oldServer = user.getServer().getInfo();
+
             // Remove from old servers
             user.getServer().disconnect( "Quitting" );
         }
@@ -273,6 +277,7 @@ public class ServerConnector extends PacketHandler
             return;
         }
 
+
         // Add to new server
         // TODO: Move this to the connected() method of DownstreamBridge
         target.addPlayer( user );
@@ -283,7 +288,7 @@ public class ServerConnector extends PacketHandler
         user.setServer( server );
         ch.getHandle().pipeline().get( HandlerBoss.class ).setHandler( new DownstreamBridge( bungee, user, server ) );
 
-        bungee.getPluginManager().callEvent( new ServerSwitchEvent( user ) );
+        bungee.getPluginManager().callEvent( new ServerSwitchEvent( user, oldServer, target ) );
 
         thisState = State.FINISHED;
 
