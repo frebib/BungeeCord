@@ -16,21 +16,22 @@ public class ScoreComponentSerializer extends BaseComponentSerializer implements
     @Override
     public ScoreComponent deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException
     {
-        JsonObject json = element.getAsJsonObject();
-        if ( !json.has( "name" ) || !json.has( "objective" ) )
+        JsonObject object = element.getAsJsonObject();
+        JsonObject score = object.get("score").getAsJsonObject();
+        if ( !score.has( "name" ) || !score.has( "objective" ) )
         {
             throw new JsonParseException( "A score component needs at least a name and an objective" );
         }
 
-        String name = json.get( "name" ).getAsString();
-        String objective = json.get( "objective" ).getAsString();
+        String name = score.get( "name" ).getAsString();
+        String objective = score.get( "objective" ).getAsString();
         ScoreComponent component = new ScoreComponent( name, objective );
-        if ( json.has( "value" ) && !json.get( "value" ).getAsString().isEmpty() )
+        if ( score.has( "value" ) && !score.get( "value" ).getAsString().isEmpty() )
         {
-            component.setValue( json.get( "value" ).getAsString() );
+            component.setValue( score.get( "value" ).getAsString() );
         }
 
-        deserialize( json, component, context );
+        deserialize( object, component, context );
         return component;
     }
 
@@ -42,7 +43,12 @@ public class ScoreComponentSerializer extends BaseComponentSerializer implements
         JsonObject json = new JsonObject();
         json.addProperty( "name", component.getName() );
         json.addProperty( "objective", component.getObjective() );
-        json.addProperty( "value", component.getValue() );
+
+        String value = component.getValue();
+        if ( value != null && !value.isEmpty() )
+        {
+            json.addProperty( "value", value);
+        }
         root.add( "score", json );
         return root;
     }
